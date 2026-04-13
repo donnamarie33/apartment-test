@@ -263,12 +263,12 @@ async function loadBookings(){
       id:i+1,
       name:b.name,
       email:b.email,
-      apt:b.apt,
+      apt:b.apt&&b.apt.toLowerCase().includes('prism')?'Prism':b.apt&&b.apt.toLowerCase().includes('axiom')?'Axiom':'Unknown',
       inn:formatDate(b.checkin),
       out:formatDate(b.checkout),
       status:'confirmed',
       mine:false
-    }));
+    })).filter(b=>b.apt!=='Unknown'&&b.inn&&b.out);
     updateStats();
     if(currentApt)renderCal();
     renderAdmin();
@@ -314,7 +314,7 @@ async function submitBooking(){
   try{
     await fetch(API_URL,{
       method:'POST',
-      body:JSON.stringify({name,email,apt:selectedApt==='prism'?'Prism 424':'Axiom 320',checkin:inn,checkout:out}),
+      body:JSON.stringify({name,email,      apt:selectedApt==='prism'?'Prism 424':'Axiom 320',checkin:inn,checkout:out}),
       headers:{'Content-Type':'application/json'}
     });
     bookings.push({id:nid++,name,email,apt:selectedApt==='prism'?'Prism':'Axiom',inn,out,status:'pending',mine:true});
