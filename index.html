@@ -247,15 +247,42 @@ textarea{resize:vertical}
 </div>
 
 <script>
+const API_URL='https://script.google.com/a/macros/genweb.io/s/AKfycbwzcSfPW5l2r7ZGrQvS2lcySxkBRCdCnL74GNAu9dq4RjXgpCOCuMdbcY53Op7bp3t2cA/exec';
 let selectedApt=null;
 let currentApt=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-let bookings=[
-  {id:1,name:'Donna Navarrete',email:'donna@genweb.io',apt:'Prism',inn:'2026-04-10',out:'2026-04-13',status:'confirmed',mine:false},
-  {id:2,name:'Donna Navarrete',email:'donna@genweb.io',apt:'Axiom',inn:'2026-04-15',out:'2026-04-17',status:'confirmed',mine:false}
-];
-let nid=3;
+let bookings=[];
+let nid=1;
+
+async function loadBookings(){
+  try{
+    const res=await fetch(API_URL);
+    const data=await res.json();
+    bookings=data.map((b,i)=>({
+      id:i+1,
+      name:b.name,
+      email:b.email,
+      apt:b.apt,
+      inn:formatDate(b.checkin),
+      out:formatDate(b.checkout),
+      status:'confirmed',
+      mine:false
+    }));
+    updateStats();
+    if(currentApt)renderCal();
+    renderAdmin();
+  }catch(e){
+    console.error('Could not load bookings:',e);
+  }
+}
+
+function formatDate(d){
+  if(!d)return'';
+  const date=new Date(d);
+  if(isNaN(date))return'';
+  return date.toISOString().split('T')[0];
+}
 
 function show(v,btn){
   document.querySelectorAll('.view').forEach(e=>e.classList.remove('active'));
@@ -278,25 +305,35 @@ function fmt(d){
   return MONTHS[+m-1].slice(0,3)+' '+parseInt(day);
 }
 
-function submitBooking(){
+async function submitBooking(){
   const name=document.getElementById('f-name').value.trim();
   const email=document.getElementById('f-email').value.trim();
   const inn=document.getElementById('f-in').value;
   const out=document.getElementById('f-out').value;
   if(!selectedApt||!name||!inn||!out){alert('Please select an apartment and fill in all required fields.');return;}
-  bookings.push({id:nid++,name,email,apt:selectedApt==='prism'?'Prism':'Axiom',inn,out,status:'pending',mine:true});
-  const s=document.getElementById('book-success');
-  s.style.display='block';
-  setTimeout(()=>s.style.display='none',4000);
-  document.getElementById('f-name').value='';
-  document.getElementById('f-email').value='';
-  document.getElementById('f-in').value='';
-  document.getElementById('f-out').value='';
-  document.getElementById('f-purpose').value='';
-  selectedApt=null;
-  document.getElementById('sel-prism').classList.remove('selected');
-  document.getElementById('sel-axiom').classList.remove('selected');
-  updateStats();
+  try{
+    await fetch(API_URL,{
+      method:'POST',
+      body:JSON.stringify({name,email,apt:selectedApt==='prism'?'Prism 424':'Axiom 320',checkin:inn,checkout:out}),
+      headers:{'Content-Type':'application/json'}
+    });
+    bookings.push({id:nid++,name,email,apt:selectedApt==='prism'?'Prism':'Axiom',inn,out,status:'pending',mine:true});
+    const s=document.getElementById('book-success');
+    s.style.display='block';
+    setTimeout(()=>s.style.display='none',4000);
+    document.getElementById('f-name').value='';
+    document.getElementById('f-email').value='';
+    document.getElementById('f-in').value='';
+    document.getElementById('f-out').value='';
+    document.getElementById('f-purpose').value='';
+    selectedApt=null;
+    document.getElementById('sel-prism').classList.remove('selected');
+    document.getElementById('sel-axiom').classList.remove('selected');
+    updateStats();
+  }catch(e){
+    alert('Something went wrong. Please try again.');
+    console.error(e);
+  }
 }
 
 function cancel(id){
@@ -385,6 +422,7 @@ function updateStats(){
 
 renderAdmin();
 updateStats();
+loadBookings();
 </script>
 </body>
 </html>
