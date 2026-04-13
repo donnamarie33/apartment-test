@@ -252,8 +252,12 @@ let selectedApt=null;
 let currentApt=null;
 let calYear=new Date().getFullYear(),calMonth=new Date().getMonth();
 const MONTHS=['January','February','March','April','May','June','July','August','September','October','November','December'];
-let bookings=[];
-let nid=1;
+let bookings=[
+  {id:1,name:'Meagan Prins-McKinney',email:'mpm@genweb.io',apt:'Prism',inn:'2026-04-12',out:'2026-04-18',status:'confirmed',mine:false},
+  {id:2,name:'Cee McDermott',email:'clm@genweb.io',apt:'Axiom',inn:'2026-04-13',out:'2026-04-16',status:'confirmed',mine:false},
+  {id:3,name:'Leslie Galán Guyton',email:'lgg@genweb.io',apt:'Prism',inn:'2026-04-21',out:'2026-04-22',status:'confirmed',mine:false}
+];
+let nid=4;
 
 async function loadBookings(){
   try{
@@ -422,7 +426,6 @@ function updateStats(){
 
 renderAdmin();
 updateStats();
-loadBookings();
 </script>
 </body>
 </html>
